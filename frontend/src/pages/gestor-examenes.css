@@ -1,0 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+.frame {
+    display: flex;
+    flex-direction: column;
+    min-width: 1200px;
+    height: 100vh;
+    background-color: #020617;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}

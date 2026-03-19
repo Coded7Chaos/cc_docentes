@@ -1,0 +1,78 @@
+.main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    padding: 20px 0;
+    font-family: 'Inter', sans-serif;
+}
+
+.center-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: -20px;
+}
+
+.title {
+    color: #4A89F3;
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-top: 30px;
+    margin-bottom: 50px;
+}
+
+.actions-container {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+}
+
+.action-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 350px;
+    text-align: center;
+}
+
+.divider {
+    width: 1px;
+    height: 180px;
+    background-color: #1E293B;
+    align-self: center;
+}
+
+.btn-primary {
+    background-color: #254EDB;
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 8px;
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 20px;
+    transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #1E40AF;
+}
+
+.description {
+    color: #94A3B8;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.footer-note {
+    color: #475569;
+    font-size: 12px;
+    align-self: flex-start;
+    margin-left: 32px;
+}

@@ -1,0 +1,265 @@
+.configuracion-servidor {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    background-color: #e4e6ea;
+    font-family: 'Inter', sans-serif;
+}
+
+.config-header {
+    background-color: #0f172a;
+    border-bottom: 1px solid #1e293b;
+    height: 90px;
+    padding: 0 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.btn-back {
+    background-color: #1e293b;
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+}
+
+.header-text-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.header-title-text {
+    font-weight: 700;
+    font-size: 16.8px;
+    color: #f1f5f9;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.header-subtitle-text {
+    font-weight: 400;
+    font-size: 12.5px;
+    color: #475569;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.config-body {
+    flex: 1;
+    padding: 20px 30px 30px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-label {
+    font-weight: 600;
+    font-size: 12px;
+    color: #0f172a;
+    letter-spacing: 0.96px;
+    text-transform: uppercase;
+}
+
+.input-container {
+    background-color: #d1d5df;
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 300px;
+    width: fit-content;
+    position: relative;
+}
+
+.input-field {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    color: #000;
+    width: 100%;
+    font-family: inherit;
+    font-weight: 500;
+}
+
+.input-field::placeholder {
+    color: #475569;
+    font-weight: 400;
+}
+
+.icon-button {
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-eye, .icon-folder, .icon-code {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-button img {
+    width: 24px;
+    height: 24px;
+}
+
+.dir-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-change {
+    background-color: #3c5bb1;
+    border-radius: 5px;
+    padding: 5px 8px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-change-text {
+    font-weight: 500;
+    font-size: 13.3px;
+    color: #fff;
+    margin: 0;
+}
+
+.info-banner {
+    background-color: #d1d5df;
+    padding: 14px 25px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 600px;
+    margin-top: auto;
+    position: relative;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.info-banner:hover {
+    background-color: #c4c9d4;
+}
+
+.dropdown-active {
+    border-radius: 0 0 8px 8px;
+}
+
+.dropdown-menu {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    width: 100%;
+    background-color: #d1d5df;
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    overflow: hidden;
+    border-bottom: 1px solid #bcc1cd;
+}
+
+.dropdown-item {
+    padding: 14px 25px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: #c4c9d4;
+}
+
+.dropdown-item.active {
+    background-color: #bcc1cd;
+}
+
+.dropdown-item .mode-tag {
+    min-width: 80px;
+}
+
+.dot-indicator {
+    width: 8px;
+    height: 8px;
+    background-color: #334155;
+    border-radius: 4px;
+}
+
+.info-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.info-title {
+    font-weight: 600;
+    font-size: 13.6px;
+    color: #64748b;
+    margin: 0;
+}
+
+.info-detail {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.mode-tag {
+    font-weight: 700;
+    font-size: 11.7px;
+    color: #475569;
+}
+
+.mode-desc {
+    font-weight: 400;
+    font-size: 11.7px;
+    color: #000;
+}
+
+.config-footer {
+    background-color: #d1d5df;
+    height: 71px;
+    padding: 16px 28px 0 0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-start-server {
+    background-color: #15803d;
+    border-radius: 4px;
+    padding: 9px 15px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-start-server-text {
+    font-weight: 600;
+    font-size: 13.3px;
+    color: #f1f5f9;
+    margin: 0;
+}
