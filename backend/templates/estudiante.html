@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrega de Examen</title>
+    <style>
+        :root {
+            --primary: #0056b3;
+            --success: #28a745;
+            --error: #dc3545;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333333;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px dashed #0056b3;
+            border-radius: 6px;
+            background: #f8f9fa;
+            cursor: pointer;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #004494;
+        }
+        button:disabled {
+            background-color: #999;
+            cursor: not-allowed;
+        }
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+        .success { background: #d4edda; color: var(--success); border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: var(--error); border: 1px solid #f5c6cb; }
+        
+        /* Pequeño texto de ayuda */
+        .help-text {
+            font-size: 0.8rem;
+            color: #666;
+            text-align: center;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Examen: {{ materia }}</h2>
+        
+        <form id="uploadForm">
+            <div class="form-group">
+                <label for="nombres">Nombres</label>
+                <input type="text" id="nombres" name="nombres" placeholder="Ej. Juan Carlos" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="apellidos">Apellidos</label>
+                <input type="text" id="apellidos" name="apellidos" placeholder="Ej. Pérez Gómez" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Contraseña del Examen</label>
+                <input type="password" id="password" name="password" placeholder="Ingresa la clave dada" required>
+            </div>
+
+            <div class="form-group">
+                <label for="file">Archivo de Entrega</label>
+                <input type="file" id="archivos" name="archivos" multiple required>
+            </div>
+
+            <button type="submit" id="submitBtn">Entregar Examen</button>
+        </form>
+
+        <div id="statusMessage" class="message"></div>
+        
+        <div class="help-text">
+            Asegúrate de que el archivo cargue completamente antes de cerrar esta ventana.
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); // Evita que la página se recargue
+            
+            const form = e.target;
+            const btn = document.getElementById('submitBtn');
+            const msgBox = document.getElementById('statusMessage');
+            
+            // Cambiar estado del botón
+            btn.disabled = true;
+            btn.innerText = "Subiendo archivo...";
+            msgBox.style.display = 'none';
+            msgBox.className = 'message';
+
+            const formData = new FormData(form);
+
+            try {
+                // Hacemos la petición a la ruta /upload que creamos en Flask
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    msgBox.textContent = "✅ ¡" + result.message + "!";
+                    msgBox.classList.add('success');
+                    form.reset(); // Limpia el formulario
+                } else {
+                    msgBox.textContent = "❌ Error: " + result.message;
+                    msgBox.classList.add('error');
+                }
+            } catch (error) {
+                msgBox.textContent = "❌ Error de conexión con el servidor local.";
+                msgBox.classList.add('error');
+            } finally {
+                // Restaurar el botón
+                msgBox.style.display = 'block';
+                btn.disabled = false;
+                btn.innerText = "Entregar Examen";
+            }
+        });
+    </script>
+</body>
+</html>
