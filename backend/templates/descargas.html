@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Descarga de Archivos</title>
+    <style>
+        :root {
+            --primary: #0056b3;
+            --success: #15803d;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333333;
+        }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        h2 {
+            text-align: center;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+        }
+        p.subtitle {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+        .file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 2rem;
+        }
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .file-name {
+            font-weight: 500;
+            font-size: 0.95rem;
+            color: #1e293b;
+        }
+        .btn-download {
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .btn-download:hover {
+            background: #004494;
+        }
+        .footer-actions {
+            border-top: 1px solid #e2e8f0;
+            padding-top: 1.5rem;
+            display: flex;
+            justify-content: center;
+        }
+        .btn-download-all {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Descarga de Material</h2>
+        <p class="subtitle">Archivos compartidos por el docente</p>
+        
+        <div class="file-list">
+            {% for archivo in archivos %}
+            <div class="file-item">
+                <div class="file-info">
+                    <span class="file-name">{{ archivo.nombre }}</span>
+                </div>
+                <a href="/download/{{ loop.index0 }}" class="btn-download">Descargar</a>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="help-text" style="text-align: center; font-size: 0.8rem; color: #94a3b8;">
+            Haz clic en "Descargar" para obtener cada archivo individualmente.
+        </div>
+    </div>
+</body>
+</html>

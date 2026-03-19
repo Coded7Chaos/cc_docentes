@@ -60,6 +60,19 @@
     gap: 25px;
 }
 
+.network-warning-banner {
+    background-color: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #92400e;
+    font-size: 13px;
+    font-weight: 500;
+}
+
 .form-group {
     display: flex;
     flex-direction: column;
@@ -102,6 +115,44 @@
     font-weight: 400;
 }
 
+.save-dir-container {
+    min-width: 300px;
+    max-width: 600px;
+    width: fit-content;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    overflow: hidden;
+    position: relative;
+    cursor: default;
+}
+
+.input-wrapper {
+    display: inline-grid;
+    align-items: center;
+    flex: 1;
+    overflow: hidden;
+}
+
+.input-wrapper > * {
+    grid-area: 1 / 1;
+}
+
+.save-dir-container .input-field {
+    width: 100%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.ghost-text {
+    visibility: hidden;
+    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 500;
+    padding-right: 20px; /* Espacio extra para asegurar que no se corte antes de tiempo */
+}
+
 .icon-button {
     background: transparent;
     border: none;
@@ -118,6 +169,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    background: transparent;
+    border: none;
+    outline: none;
 }
 
 .icon-button img {
@@ -137,6 +191,12 @@
     padding: 5px 8px;
     border: none;
     cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.btn-change:hover {
+    background-color: #2b4385;
+    transform: scale(1.05);
 }
 
 .btn-change-text {
@@ -255,6 +315,12 @@
     padding: 9px 10px;
     border: none;
     cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.btn-start-server:hover {
+    background-color: #116631;
+    transform: scale(1.05);
 }
 
 .btn-start-server-text {

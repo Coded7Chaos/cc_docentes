@@ -9,6 +9,17 @@ import './gestor-examenes.css';
 
 export const GestorExamenesPage = () => {
     const [view, setView] = useState<'welcome' | 'config' | 'monitoring' | 'envio' | 'monitoring-envio'>('welcome');
+    const [serverData, setServerData] = useState<{ url: string; ruta: string } | null>(null);
+
+    const handleRecibirServerStarted = (data: { url: string; ruta: string }) => {
+        setServerData(data);
+        setView('monitoring');
+    };
+
+    const handleEnviarServerStarted = (data: { url: string; ruta: string }) => {
+        setServerData(data);
+        setView('monitoring-envio');
+    };
 
     return (
         <div className="frame">
@@ -24,25 +35,33 @@ export const GestorExamenesPage = () => {
             {view === 'config' && (
                 <ConfiguracionServidor 
                     onBack={() => setView('welcome')} 
-                    onStartServer={() => setView('monitoring')}
+                    onStartServer={handleRecibirServerStarted}
                 />
             )}
             {view === 'monitoring' && (
                 <MonitoreoVivo 
                     onBack={() => setView('config')}
-                    onCloseServer={() => setView('welcome')}
+                    onCloseServer={() => {
+                        setServerData(null);
+                        setView('welcome');
+                    }}
+                    serverData={serverData}
                 />
             )}
             {view === 'envio' && (
                 <EnviarArchivos 
                     onBack={() => setView('welcome')}
-                    onStartServer={() => setView('monitoring-envio')}
+                    onStartServer={handleEnviarServerStarted}
                 />
             )}
             {view === 'monitoring-envio' && (
                 <MonitoreoEnvio 
                     onBack={() => setView('envio')}
-                    onCloseServer={() => setView('welcome')}
+                    onCloseServer={() => {
+                        setServerData(null);
+                        setView('welcome');
+                    }}
+                    serverData={serverData}
                 />
             )}
         </div>

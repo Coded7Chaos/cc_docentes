@@ -1,0 +1,3 @@
+([('Simple Test Server',
+   '/Users/franco/Documents/CC-programa/para_docentes/dist/Simple Test Server',
+   'EXECUTABLE')],)

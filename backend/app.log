@@ -1,0 +1,51 @@
+2026-03-19 17:45:06,680 - INFO - [main.py:198] - Iniciando aplicación PyWebview...
+2026-03-19 17:45:31,933 - INFO - [main.py:198] - Iniciando aplicación PyWebview...
+2026-03-19 17:45:36,659 - INFO - [main.py:198] - Iniciando aplicación PyWebview...
+2026-03-19 17:46:55,185 - INFO - [main.py:198] - Iniciando aplicación PyWebview...
+2026-03-19 17:47:07,877 - INFO - [main.py:60] - Ruta de escritorio obtenida: /Users/franco/Desktop
+2026-03-19 17:47:07,879 - INFO - [main.py:60] - Ruta de escritorio obtenida: /Users/franco/Desktop
+2026-03-19 17:47:17,032 - INFO - [main.py:93] - Intento de inicio de servidor: Materia=Sis-12, Modo=ESTRICTO
+2026-03-19 17:47:17,033 - INFO - [server.py:28] - Configurando servidor de RECEPCIÓN: Materia=Sis-12, Modo=sobreescribir
+2026-03-19 17:47:17,035 - INFO - [server.py:39] - Carpeta de entregas creada: /Users/franco/Desktop/entregas_Sis-12_20260319
+2026-03-19 17:47:17,036 - INFO - [main.py:117] - Iniciando Waitress en http://172.18.25.221:5001 sirviendo desde /Users/franco/Desktop/entregas_Sis-12_20260319
+2026-03-19 17:47:17,048 - INFO - [wasyncore.py:449] - Serving on http://0.0.0.0:5001
+2026-03-19 17:47:28,058 - INFO - [server.py:48] - Acceso al index desde 172.18.20.168. Modo actual: recepcion
+2026-03-19 17:47:50,102 - INFO - [server.py:86] - Recibiendo entrega de: RODAS, Nicole desde 172.18.20.168
+2026-03-19 17:47:50,106 - INFO - [server.py:121] - Archivo guardado en /Users/franco/Desktop/entregas_Sis-12_20260319/RODAS_Nicole.jpeg
+2026-03-19 17:47:50,106 - INFO - [server.py:130] - Nuevo alumno añadido a la lista: RODAS, Nicole
+2026-03-19 17:47:59,038 - INFO - [main.py:162] - Abriendo carpeta: /Users/franco/Desktop/entregas_Sis-12_20260319
+2026-03-19 17:48:45,196 - INFO - [main.py:179] - Solicitud de detención de servidor.
+2026-03-19 17:48:45,198 - INFO - [main.py:191] - Servidor detenido lógicamente (estado reseteado).
+2026-03-19 17:48:48,071 - INFO - [main.py:74] - Abriendo diálogo de selección de múltiples archivos...
+2026-03-19 17:48:48,072 - WARNING - [__init__.py:90] - OPEN_DIALOG is deprecated and will be removed in a future version. Use 'FileDialog.OPEN' instead.
+2026-03-19 17:48:49,188 - WARNING - [__init__.py:90] - OPEN_DIALOG is deprecated and will be removed in a future version. Use 'FileDialog.OPEN' instead.
+2026-03-19 17:48:49,188 - WARNING - [__init__.py:90] - OPEN_DIALOG is deprecated and will be removed in a future version. Use 'FileDialog.OPEN' instead.
+2026-03-19 17:48:49,188 - WARNING - [__init__.py:90] - OPEN_DIALOG is deprecated and will be removed in a future version. Use 'FileDialog.OPEN' instead.
+2026-03-19 17:48:53,084 - INFO - [main.py:89] - Archivos seleccionados: ['Gilded.png']
+2026-03-19 17:48:55,207 - INFO - [main.py:128] - Intento de inicio de servidor de envío con 1 archivos.
+2026-03-19 17:48:55,209 - INFO - [main.py:149] - Iniciando Waitress para envío en http://172.18.25.221:5002
+2026-03-19 17:48:55,212 - INFO - [wasyncore.py:449] - Serving on http://0.0.0.0:5002
+2026-03-19 17:49:01,525 - INFO - [server.py:48] - Acceso al index desde 172.18.20.168. Modo actual: envio
+2026-03-19 17:49:04,830 - INFO - [server.py:65] - Descargando archivo: Gilded.png solicitado por 172.18.20.168
+2026-03-19 17:50:07,079 - INFO - [main.py:179] - Solicitud de detención de servidor.
+2026-03-19 17:50:07,080 - INFO - [main.py:191] - Servidor detenido lógicamente (estado reseteado).
+2026-03-19 17:51:15,406 - INFO - [main.py:74] - Abriendo diálogo de selección de múltiples archivos...
+2026-03-19 17:51:15,408 - WARNING - [__init__.py:90] - OPEN_DIALOG is deprecated and will be removed in a future version. Use 'FileDialog.OPEN' instead.
+2026-03-19 17:51:15,642 - WARNING - [__init__.py:90] - OPEN_DIALOG is deprecated and will be removed in a future version. Use 'FileDialog.OPEN' instead.
+2026-03-19 17:51:15,642 - WARNING - [__init__.py:90] - OPEN_DIALOG is deprecated and will be removed in a future version. Use 'FileDialog.OPEN' instead.
+2026-03-19 17:51:15,642 - WARNING - [__init__.py:90] - OPEN_DIALOG is deprecated and will be removed in a future version. Use 'FileDialog.OPEN' instead.
+2026-03-19 17:51:18,318 - INFO - [main.py:89] - Archivos seleccionados: ['Diagrama_casosdeuso.mdj']
+2026-03-19 17:51:29,356 - INFO - [main.py:74] - Abriendo diálogo de selección de múltiples archivos...
+2026-03-19 17:51:29,357 - WARNING - [__init__.py:90] - OPEN_DIALOG is deprecated and will be removed in a future version. Use 'FileDialog.OPEN' instead.
+2026-03-19 17:51:29,512 - WARNING - [__init__.py:90] - OPEN_DIALOG is deprecated and will be removed in a future version. Use 'FileDialog.OPEN' instead.
+2026-03-19 17:51:29,512 - WARNING - [__init__.py:90] - OPEN_DIALOG is deprecated and will be removed in a future version. Use 'FileDialog.OPEN' instead.
+2026-03-19 17:51:29,512 - WARNING - [__init__.py:90] - OPEN_DIALOG is deprecated and will be removed in a future version. Use 'FileDialog.OPEN' instead.
+2026-03-19 17:51:32,730 - INFO - [main.py:89] - Archivos seleccionados: ['Diagrama_casosdeuso.mdj', 'UseCaseDiagram1.svg', 'UseCaseDiagram2.svg', 'UseCaseDiagram3.svg', 'UseCaseDiagram4.svg']
+2026-03-19 17:53:43,583 - INFO - [main.py:60] - Ruta de escritorio obtenida: /Users/franco/Desktop
+2026-03-19 17:53:43,590 - INFO - [main.py:60] - Ruta de escritorio obtenida: /Users/franco/Desktop
+2026-03-19 17:54:17,519 - INFO - [main.py:213] - Aplicación cerrada.
+2026-03-19 18:04:41,832 - INFO - [main.py:198] - Iniciando aplicación PyWebview...
+2026-03-19 18:17:13,769 - INFO - [main.py:198] - Iniciando aplicación PyWebview...
+2026-03-19 18:21:08,129 - INFO - [main.py:213] - Aplicación cerrada.
+2026-03-19 18:22:33,086 - INFO - [main.py:198] - Iniciando aplicación PyWebview...
+2026-03-19 18:26:55,024 - INFO - [main.py:213] - Aplicación cerrada.

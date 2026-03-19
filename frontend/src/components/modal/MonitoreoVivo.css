@@ -146,6 +146,12 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.btn-open-folder:hover {
+    background-color: #116631;
+    transform: scale(1.05);
 }
 
 .btn-open-folder-text {
@@ -160,6 +166,12 @@
     padding: 9px 15px;
     border: none;
     cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.btn-close-server:hover {
+    background-color: #cc0000;
+    transform: scale(1.05);
 }
 
 .btn-close-server-text {

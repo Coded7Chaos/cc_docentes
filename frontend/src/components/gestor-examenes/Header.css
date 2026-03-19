@@ -41,6 +41,14 @@
 .nav-link {
     color: #4A89F3;
     text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: filter 0.2s;
+}
+
+.nav-link:hover {
+    filter: brightness(1.2);
 }
 
 .separator {

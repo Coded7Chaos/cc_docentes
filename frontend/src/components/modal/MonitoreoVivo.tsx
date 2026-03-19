@@ -1,34 +1,75 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Settings, FolderOpen } from 'lucide-react';
 import './MonitoreoVivo.css';
-
-const imgIcon = "https://www.figma.com/api/mcp/asset/8ab6b05e-ba95-4510-95b9-59c0384468dc";
-const imgSolarSettingsBoldDuotone = "https://www.figma.com/api/mcp/asset/32146a6d-1225-4998-b2c3-627cefc7a668";
-const imgMaterialSymbolsFolderSharp = "https://www.figma.com/api/mcp/asset/af10fcde-2c5e-40ba-8c3c-67063cbf503e";
 
 interface MonitoreoVivoProps {
     onBack: () => void;
     onCloseServer: () => void;
+    serverData: { url: string; ruta: string } | null;
 }
 
-export const MonitoreoVivo: React.FC<MonitoreoVivoProps> = ({ onBack, onCloseServer }) => {
-    const deliveries = [
-        "PEREZ, Juan Luis",
-        "RODAS MIRANDA, Camila Nicole",
-        "MEDINA, Esmeralda",
-        "GONZALES, Joaquin"
-    ];
+export const MonitoreoVivo: React.FC<MonitoreoVivoProps> = ({ onBack, onCloseServer, serverData }) => {
+    const [deliveries, setDeliveries] = useState<string[]>([]);
+
+    // Función para obtener alumnos desde el backend
+    const actualizarAlumnos = async () => {
+        if (window.pywebview && window.pywebview.api) {
+            try {
+                const alumnos = await window.pywebview.api.obtener_alumnos_directo();
+                // Asumiendo que alumnos es una lista de nombres o objetos
+                if (alumnos) setDeliveries(alumnos);
+            } catch (error) {
+                console.error("Error al obtener alumnos:", error);
+            }
+        }
+    };
+
+    // Polling para actualizar la lista cada 3 segundos
+    useEffect(() => {
+        actualizarAlumnos();
+        const interval = setInterval(actualizarAlumnos, 3000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const handleOpenFolder = () => {
+        if (window.pywebview && window.pywebview.api) {
+            window.pywebview.api.abrir_carpeta();
+        }
+    };
+
+    const handleCloseServer = async () => {
+        const confirmar = window.confirm("¿Estás seguro de cerrar el servidor? Ya no recibirás más exámenes.");
+        
+        if (confirmar) {
+            if (window.pywebview && window.pywebview.api) {
+                try {
+                    const result = await (window.pywebview.api as any).detener_servidor();
+                    if (result.status === "ok") {
+                        onCloseServer();
+                    } else {
+                        alert("Error: " + result.message);
+                    }
+                } catch (error) {
+                    console.error("Error al detener servidor:", error);
+                    onCloseServer();
+                }
+            } else {
+                onCloseServer();
+            }
+        }
+    };
 
     return (
         <div className="monitoreo-vivo">
             <header className="monitoreo-header">
-                <button className="btn-back-light" onClick={onBack}>
-                    <img src={imgIcon} alt="Back" />
+                <button className="btn-back-light" onClick={handleCloseServer}>
+                    <ArrowLeft size={20} color="#475569" />
                 </button>
                 <div className="header-main-info">
                     <h2 className="monitoreo-title">Monitoreo en vivo</h2>
                     <p className="monitoreo-subtitle">Pide a los alumnos que ingresen a esta dirección:</p>
                     <div className="address-box">
-                        <p className="address-text">http:192.168.1.11:5001</p>
+                        <p className="address-text">{serverData?.url || "http://buscando-ip..."}</p>
                     </div>
                 </div>
             </header>
@@ -36,26 +77,30 @@ export const MonitoreoVivo: React.FC<MonitoreoVivoProps> = ({ onBack, onCloseSer
             <main className="monitoreo-body">
                 <p className="label-deliveries">ENTREGAS RECIBIDAS: {deliveries.length}</p>
                 <div className="deliveries-container">
-                    <ul className="deliveries-list">
-                        {deliveries.map((name, index) => (
-                            <li key={index} className="delivery-item">
-                                {name}
-                            </li>
-                        ))}
-                    </ul>
+                    {deliveries.length === 0 ? (
+                        <div className="empty-state">Esperando entregas...</div>
+                    ) : (
+                        <ul className="deliveries-list">
+                            {deliveries.map((name, index) => (
+                                <li key={index} className="delivery-item">
+                                    {name}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
             </main>
 
             <footer className="monitoreo-footer">
                 <button className="btn-settings">
-                    <img src={imgSolarSettingsBoldDuotone} alt="Settings" width="24" height="24" />
+                    <Settings size={24} color="#f1f5f9" />
                 </button>
                 <div className="footer-actions">
-                    <button className="btn-open-folder">
-                        <img src={imgMaterialSymbolsFolderSharp} alt="Folder" width="24" height="24" />
+                    <button className="btn-open-folder" onClick={handleOpenFolder}>
+                        <FolderOpen size={20} color="#f1f5f9" />
                         <span className="btn-open-folder-text">Abrir Carpeta</span>
                     </button>
-                    <button className="btn-close-server" onClick={onCloseServer}>
+                    <button className="btn-close-server" onClick={handleCloseServer}>
                         <span className="btn-close-server-text">Cerrar servidor</span>
                     </button>
                 </div>

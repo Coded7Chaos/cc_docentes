@@ -1,0 +1,7 @@
+2026-03-19 17:44:35,104 - INFO - [server.py:28] - Configurando servidor de RECEPCIÓN: Materia=Matematica, Modo=sobreescribir
+2026-03-19 17:44:35,105 - INFO - [server.py:39] - Carpeta de entregas creada: /Users/franco/Documents/CC-programa/para_docentes/backend/entregas_Matematica_20260319
+2026-03-19 17:44:35,105 - INFO - [main.py:179] - Solicitud de detención de servidor.
+2026-03-19 17:44:35,105 - INFO - [main.py:191] - Servidor detenido lógicamente (estado reseteado).
+2026-03-19 17:44:35,106 - INFO - [server.py:48] - Acceso al index desde 127.0.0.1. Modo actual: envio
+2026-03-19 17:44:35,108 - INFO - [server.py:48] - Acceso al index desde 127.0.0.1. Modo actual: recepcion
+2026-03-19 17:44:35,109 - WARNING - [server.py:81] - Intento de subida con contraseña incorrecta desde 127.0.0.1

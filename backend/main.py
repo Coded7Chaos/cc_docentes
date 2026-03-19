@@ -6,7 +6,34 @@ import os
 import socket
 import sys
 import subprocess
+import logging
 
+# Configuración de logs en carpeta de usuario para evitar problemas de permisos
+def configurar_logs():
+    app_name = "EasyTestServer"
+    if sys.platform == "win32":
+        log_dir = os.path.join(os.getenv('LOCALAPPDATA'), app_name)
+    else:
+        log_dir = os.path.join(os.path.expanduser("~"), ".config", app_name)
+    
+    try:
+        os.makedirs(log_dir, exist_ok=True)
+        log_path = os.path.join(log_dir, "app.log")
+    except Exception:
+        log_path = "app.log" # Fallback a carpeta actual si falla todo
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s',
+        handlers=[
+            logging.FileHandler(log_path, encoding='utf-8'),
+            logging.StreamHandler(sys.stdout)
+        ]
+    )
+    return log_path
+
+configurar_logs()
+logger = logging.getLogger(__name__)
 
 def obtener_ip():
     try:
@@ -16,7 +43,8 @@ def obtener_ip():
         ip = s.getsockname()[0]
         s.close()
         return ip
-    except Exception:
+    except Exception as e:
+        logger.error(f"Error al obtener IP: {e}")
         return "127.0.0.1"
     
 def obtener_puerto_libre(puerto_inicial=5000):
@@ -35,6 +63,7 @@ def obtener_puerto_libre(puerto_inicial=5000):
                 # Si da error (Errno 48), el puerto está ocupado. Sumamos 1 y el bucle repite.
                 puerto += 1
     
+    logger.error("No se encontraron puertos libres en el rango 5000-5100")
     raise Exception("No se encontraron puertos libres en el rango especificado.")
 
 
@@ -43,56 +72,178 @@ class ApiBridge:
         self.window = None
 
     def obtener_ruta_escritorio(self):
-        return os.path.join(os.path.expanduser("~"), "Desktop")
+        ruta = os.path.join(os.path.expanduser("~"), "Desktop")
+        logger.info(f"Ruta de escritorio obtenida: {ruta}")
+        return ruta
     
     def seleccionar_carpeta(self):
+        logger.info("Abriendo diálogo de selección de carpeta...")
         resultado = self.window.create_file_dialog(webview.FOLDER_DIALOG)
         if resultado:
+            logger.info(f"Carpeta seleccionada: {resultado[0]}")
             return resultado[0]
+        logger.info("Selección de carpeta cancelada.")
         return None
 
+    def abrir_archivos(self):
+        # Abre diálogo de selección de múltiples archivos
+        logger.info("Abriendo diálogo de selección de múltiples archivos...")
+        resultado = self.window.create_file_dialog(webview.OPEN_DIALOG, allow_multiple=True)
+        if not resultado:
+            logger.info("Selección de archivos cancelada.")
+            return []
+        
+        lista_archivos = []
+        for path in resultado:
+            nombre = os.path.basename(path)
+            _, ext = os.path.splitext(nombre)
+            lista_archivos.append({
+                "path": path,
+                "nombre": nombre,
+                "extension": ext.lower()
+            })
+        logger.info(f"Archivos seleccionados: {[f['nombre'] for f in lista_archivos]}")
+        return lista_archivos
+
+    def obtener_estado_red(self):
+        ip = obtener_ip()
+        logger.info(f"Verificando estado de red. IP detectada: {ip}")
+        
+        if ip == "127.0.0.1":
+            return {
+                "conectado": False,
+                "ip": ip,
+                "mensaje": "No se detecta una red local (Wi-Fi o Cable). Los alumnos no podrán conectarse. Prueba activando un Hotspot."
+            }
+        
+        return {
+            "conectado": True,
+            "ip": ip,
+            "mensaje": "Conectado a la red local."
+        }
+
     def iniciar_servidor(self, materia, password, modo, ruta_base):
+        logger.info(f"Intento de inicio de servidor: Materia={materia}, Modo={modo}")
         if estado["servidor_corriendo"]:
+            logger.warning("Intento de iniciar servidor fallido: ya hay uno en ejecución.")
             return {"status": "error", "message": "El servidor ya está en marcha."}
+        
         if not ruta_base or ruta_base == "Cargando...":
             ruta_base = self.obtener_ruta_escritorio()
 
-        # 1. Configurar lógica
-        ruta = configurar_servidor(materia, password, modo, ruta_base)
+        # Mapear modos de frontend a backend
+        # Frontend: 'ESTRICTO' | 'FLEXIBLE'
+        # Backend: 'sobreescribir' | 'historial'
+        modo_backend = "sobreescribir" if modo == "ESTRICTO" else "historial"
 
-        ip_local = obtener_ip()
+        try:
+            # 1. Configurar lógica
+            ruta = configurar_servidor(materia, password, modo_backend, ruta_base)
 
-        puerto = obtener_puerto_libre(5000)
+            ip_local = obtener_ip()
+            puerto = obtener_puerto_libre(5000)
 
-        url_conexion = f"http:{ip_local}:{puerto}]"
+            # URL corregida
+            url_conexion = f"http://{ip_local}:{puerto}"
+            
+            # 2. Correr Waitress en un hilo (Thread)
+            logger.info(f"Iniciando Waitress en {url_conexion} sirviendo desde {ruta}")
+            threading.Thread(target=lambda: serve(app, host='0.0.0.0', port=puerto), daemon=True).start()
+            
+            estado["servidor_corriendo"] = True
+            
+            return {"status": "ok", "ruta": ruta, "url": url_conexion}
+        except Exception as e:
+            logger.exception("Error al iniciar el servidor de recepción")
+            return {"status": "error", "message": str(e)}
+
+    def iniciar_servidor_envio(self, archivos):
+        logger.info(f"Intento de inicio de servidor de envío con {len(archivos)} archivos.")
+        if estado["servidor_corriendo"]:
+            logger.warning("Intento de iniciar servidor de envío fallido: ya hay uno en ejecución.")
+            return {"status": "error", "message": "El servidor ya está en marcha."}
         
-        # 2. Correr Waitress en un hilo (Thread) para no congelar la pantalla
-        threading.Thread(target=lambda: serve(app, host='0.0.0.0', port=puerto), daemon=True).start()
-        estado["servidor_corriendo"] = True
-        
-        return {"status": "ok", "ruta": ruta, "url": url_conexion}
+        if not archivos:
+            logger.error("No se puede iniciar servidor de envío sin archivos.")
+            return {"status": "error", "message": "No se han seleccionado archivos."}
+
+        try:
+            # 1. Configurar estado explícito
+            estado["tipo"] = "envio"
+            estado["archivos_a_enviar"] = archivos
+            estado["materia"] = "" # Limpiar por si acaso
+            
+            ip_local = obtener_ip()
+            puerto = obtener_puerto_libre(5000)
+
+            url_conexion = f"http://{ip_local}:{puerto}"
+            
+            # 2. Correr Waitress en un hilo
+            logger.info(f"Iniciando Waitress para envío en {url_conexion}")
+            threading.Thread(target=lambda: serve(app, host='0.0.0.0', port=puerto), daemon=True).start()
+            
+            estado["servidor_corriendo"] = True
+            
+            return {"status": "ok", "url": url_conexion}
+        except Exception as e:
+            logger.exception("Error al iniciar el servidor de envío")
+            return {"status": "error", "message": str(e)}
 
     def abrir_carpeta(self):
-        if os.path.exists(estado["ruta"]):
+        ruta = estado.get("ruta")
+        if ruta and os.path.exists(ruta):
+            logger.info(f"Abriendo carpeta: {ruta}")
             if sys.platform == "win32":
                 #Windows
-                os.startfile(estado["ruta"])
+                os.startfile(ruta)
             elif sys.platform == "darwin":
                 #Mac
-                subprocess.Popen(["open", estado["ruta"]])
+                subprocess.Popen(["open", ruta])
             else:
                 #Linux
-                subprocess.Popen(["xdg-open", estado["ruta"]])
+                subprocess.Popen(["xdg-open", ruta])
+        else:
+            logger.warning(f"Intento de abrir carpeta fallido: ruta no válida ({ruta})")
+
     def obtener_alumnos_directo(self):
         return estado["alumnos"]
 
+    def detener_servidor(self):
+        logger.info("Solicitud de detención de servidor.")
+        if not estado["servidor_corriendo"]:
+            logger.warning("Intento de detener servidor fallido: no hay ninguno activo.")
+            return {"status": "error", "message": "No hay ningún servidor corriendo."}
+        
+        try:
+            # En Waitress no hay un 'stop' directo por hilo, 
+            # pero marcamos el estado como detenido para la lógica de la app.
+            estado["servidor_corriendo"] = False
+            estado["materia"] = ""
+            estado["alumnos"] = []
+            estado["archivos_a_enviar"] = []
+            logger.info("Servidor detenido lógicamente (estado reseteado).")
+            return {"status": "ok", "message": "Servidor detenido correctamente."}
+        except Exception as e:
+            logger.error(f"Error al detener el servidor: {e}")
+            return {"status": "error", "message": str(e)}
+
 def start():
+    logger.info("Iniciando aplicación PyWebview...")
     api = ApiBridge()
-    # En desarrollo apunta al puerto de Vite (5173), en producción al index.html
-    window = webview.create_window('Easy Test Server', 'http://localhost:5173', js_api=api)
+    # Eliminamos icon de aquí
+    window = webview.create_window(
+        'Simple Test Server', 
+        'http://localhost:5173', 
+        js_api=api, 
+        width=1200, 
+        height=800, 
+        resizable=False
+    )
     api.window = window
     
-    webview.start()
+    # Lo movemos aquí
+    webview.start(icon='backend/icono.png')
+    logger.info("Aplicación cerrada.")
 
 if __name__ == '__main__':
     start()
