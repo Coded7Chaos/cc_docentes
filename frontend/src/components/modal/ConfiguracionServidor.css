@@ -243,8 +243,8 @@
 
 .config-footer {
     background-color: #d1d5df;
-    height: 71px;
-    padding: 16px 28px 0 0;
+    height: 50px;
+    padding: 16px 28px;
     display: flex;
     justify-content: flex-end;
 }
@@ -252,7 +252,7 @@
 .btn-start-server {
     background-color: #15803d;
     border-radius: 4px;
-    padding: 9px 15px;
+    padding: 9px 10px;
     border: none;
     cursor: pointer;
 }
