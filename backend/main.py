@@ -8,7 +8,16 @@ import sys
 import subprocess
 import logging
 
-# Configuración de logs en carpeta de usuario para evitar problemas de permisos
+# Función para resolver rutas de archivos internos (necesario para PyInstaller)
+def obtener_ruta_recurso(ruta_relativa):
+    try:
+        # PyInstaller crea una carpeta temporal y guarda la ruta en _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, ruta_relativa)
+
+# Configuración de logs en carpeta de usuario
 def configurar_logs():
     app_name = "EasyTestServer"
     if sys.platform == "win32":
@@ -230,10 +239,23 @@ class ApiBridge:
 def start():
     logger.info("Iniciando aplicación PyWebview...")
     api = ApiBridge()
-    # Eliminamos icon de aquí
+    
+    # Determinar si estamos en desarrollo o producción (congelado por PyInstaller)
+    es_produccion = getattr(sys, 'frozen', False)
+    
+    if es_produccion:
+        # En producción cargamos el index.html de la carpeta frontend/dist
+        ruta_html = obtener_ruta_recurso(os.path.join('frontend', 'dist', 'index.html'))
+        target_url = ruta_html
+        logger.info(f"Modo producción detectado. Cargando interfaz desde: {target_url}")
+    else:
+        # En desarrollo apuntamos al puerto de Vite
+        target_url = 'http://localhost:5173'
+        logger.info("Modo desarrollo detectado. Apuntando a http://localhost:5173")
+
     window = webview.create_window(
         'Simple Test Server', 
-        'http://localhost:5173', 
+        target_url, 
         js_api=api, 
         width=1200, 
         height=800, 
@@ -241,8 +263,9 @@ def start():
     )
     api.window = window
     
-    # Lo movemos aquí
-    webview.start(icon='backend/icono.png')
+    # Resolvemos la ruta del icono correctamente
+    ruta_icono = obtener_ruta_recurso('backend/icono.png')
+    webview.start(icon=ruta_icono)
     logger.info("Aplicación cerrada.")
 
 if __name__ == '__main__':

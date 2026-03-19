@@ -7,9 +7,19 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 import logging
 
+import sys
+
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
+# Configuración de rutas para plantillas (soporte PyInstaller)
+if getattr(sys, 'frozen', False):
+    # Si es ejecutable, las plantillas están en la carpeta temporal _MEIPASS
+    template_folder = os.path.join(sys._MEIPASS, 'backend', 'templates')
+else:
+    # En desarrollo están en la carpeta local
+    template_folder = 'templates'
+
+app = Flask(__name__, template_folder=template_folder)
 
 def es_ip_local(ip):
     try:
