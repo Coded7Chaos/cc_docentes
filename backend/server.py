@@ -30,7 +30,11 @@ def es_ip_local(ip):
 
 @app.before_request
 def filtrar_solo_local():
-    # Permitir localhost y red local
+    # Bloquear acceso si el servidor está "lógicamente" apagado
+    if not estado["servidor_corriendo"]:
+        logger.warning(f"Petición rechazada: El servidor está detenido. IP: {request.remote_addr}")
+        abort(503) # Servicio no disponible
+
     client_ip = request.remote_addr
     if not es_ip_local(client_ip):
         logger.warning(f"CONEXIÓN BLOQUEADA: Intento de acceso desde IP externa no autorizada: {client_ip}")
@@ -85,15 +89,17 @@ def download_file(file_id):
     client_ip = request.remote_addr
     if not (0 <= file_id < len(estado["archivos_a_enviar"])):
         logger.warning(f"Intento de descarga fallido (ID no existe): {file_id} desde {client_ip}")
-        return "Archivo no encontrado", 404
+        return "Archivo no encontrado en la lista", 404
     
     archivo = estado["archivos_a_enviar"][file_id]
-    logger.info(f"Descargando archivo: {archivo['nombre']} solicitado por {client_ip}")
     ruta_completa = archivo["path"]
-    directorio = os.path.dirname(ruta_completa)
-    nombre = os.path.basename(ruta_completa)
 
-    return send_from_directory(directorio, nombre, as_attachment=True)
+    if not ruta_completa or not os.path.exists(ruta_completa):
+        logger.error(f"Archivo no encontrado en disco: {ruta_completa}")
+        return "El archivo ya no está disponible en la ubicación original.", 404
+
+    logger.info(f"Enviando archivo: {archivo['nombre']} a {client_ip}")
+    return send_file(ruta_completa, as_attachment=True)
 
 @app.route('/upload', methods=['POST'])
 def upload():

@@ -79,6 +79,16 @@ def obtener_puerto_libre(puerto_inicial=5000):
 class ApiBridge:
     def __init__(self):
         self.window = None
+        self.servidor_inicializado = False
+        self.puerto_fijo = None
+
+    def asegurar_servidor_iniciado(self):
+        if not self.servidor_inicializado:
+            # Buscamos un puerto libre solo la primera vez
+            self.puerto_fijo = obtener_puerto_libre(5000)
+            logger.info(f"Iniciando hilo único de servidor en puerto {self.puerto_fijo}")
+            threading.Thread(target=lambda: serve(app, host='0.0.0.0', port=self.puerto_fijo), daemon=True).start()
+            self.servidor_inicializado = True
 
     def obtener_ruta_escritorio(self):
         ruta = os.path.join(os.path.expanduser("~"), "Desktop")
@@ -140,27 +150,18 @@ class ApiBridge:
         if not ruta_base or ruta_base == "Cargando...":
             ruta_base = self.obtener_ruta_escritorio()
 
-        # Mapear modos de frontend a backend
-        # Frontend: 'ESTRICTO' | 'FLEXIBLE'
-        # Backend: 'sobreescribir' | 'historial'
         modo_backend = "sobreescribir" if modo == "ESTRICTO" else "historial"
 
         try:
-            # 1. Configurar lógica
             ruta = configurar_servidor(materia, password, modo_backend, ruta_base)
-
             ip_local = obtener_ip()
-            puerto = obtener_puerto_libre(5000)
-
-            # URL corregida
-            url_conexion = f"http://{ip_local}:{puerto}"
             
-            # 2. Correr Waitress en un hilo (Thread)
-            logger.info(f"Iniciando Waitress en {url_conexion} sirviendo desde {ruta}")
-            threading.Thread(target=lambda: serve(app, host='0.0.0.0', port=puerto), daemon=True).start()
+            # Aseguramos que el hilo esté corriendo
+            self.asegurar_servidor_iniciado()
+            
+            url_conexion = f"http://{ip_local}:{self.puerto_fijo}"
             
             estado["servidor_corriendo"] = True
-            
             return {"status": "ok", "ruta": ruta, "url": url_conexion}
         except Exception as e:
             logger.exception("Error al iniciar el servidor de recepción")
@@ -183,16 +184,13 @@ class ApiBridge:
             estado["materia"] = "" # Limpiar por si acaso
             
             ip_local = obtener_ip()
-            puerto = obtener_puerto_libre(5000)
-
-            url_conexion = f"http://{ip_local}:{puerto}"
             
-            # 2. Correr Waitress en un hilo
-            logger.info(f"Iniciando Waitress para envío en {url_conexion}")
-            threading.Thread(target=lambda: serve(app, host='0.0.0.0', port=puerto), daemon=True).start()
+            # Aseguramos que el hilo esté corriendo
+            self.asegurar_servidor_iniciado()
+            
+            url_conexion = f"http://{ip_local}:{self.puerto_fijo}"
             
             estado["servidor_corriendo"] = True
-            
             return {"status": "ok", "url": url_conexion}
         except Exception as e:
             logger.exception("Error al iniciar el servidor de envío")
@@ -216,6 +214,31 @@ class ApiBridge:
 
     def obtener_alumnos_directo(self):
         return estado["alumnos"]
+
+    def guardar_archivo_temporal(self, nombre, contenido_base64):
+        import base64
+        logger.info(f"Guardando archivo temporal proveniente de Drag and Drop: {nombre}")
+        try:
+            # Crear carpeta temporal en AppData
+            app_name = "EasyTestServer"
+            if sys.platform == "win32":
+                temp_dir = os.path.join(os.getenv('LOCALAPPDATA'), app_name, "temp_upload")
+            else:
+                temp_dir = os.path.join(os.path.expanduser("~"), ".config", app_name, "temp_upload")
+            
+            os.makedirs(temp_dir, exist_ok=True)
+            ruta_final = os.path.join(temp_dir, nombre)
+            
+            # Decodificar y guardar
+            data = base64.b64decode(contenido_base64)
+            with open(ruta_final, "wb") as f:
+                f.write(data)
+            
+            logger.info(f"Archivo temporal guardado con éxito en: {ruta_final}")
+            return {"status": "ok", "path": ruta_final}
+        except Exception as e:
+            logger.error(f"Error al guardar archivo temporal: {e}")
+            return {"status": "error", "message": str(e)}
 
     def detener_servidor(self):
         logger.info("Solicitud de detención de servidor.")

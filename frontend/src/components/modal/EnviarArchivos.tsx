@@ -51,22 +51,58 @@ export const EnviarArchivos: React.FC<EnviarArchivosProps> = ({ onBack, onStartS
     setIsDragging(false);
   };
 
-  const processFiles = (fileList: FileList | File[]) => {
-    const newFiles: FileData[] = Array.from(fileList).map(file => {
+  const readFileAsBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = (reader.result as string).split(',')[1];
+        resolve(base64String);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const processFiles = async (fileList: FileList | File[]) => {
+    setIsLoading(true);
+    const newFiles: FileData[] = [];
+
+    for (const file of Array.from(fileList)) {
       const name = file.name;
       const dotIndex = name.lastIndexOf('.');
       const extension = dotIndex !== -1 ? name.substring(dotIndex).toLowerCase() : '';
       
-      return {
-        id: Math.random().toString(36).substr(2, 9),
-        name: name,
-        // Usamos la propiedad .path si existe (común en webviews de escritorio)
-        path: (file as any).path || '', 
-        selected: true,
-        extension: extension
-      };
-    });
-    setFiles(prev => [...prev, ...newFiles]);
+      // Intentar obtener ruta directa (algunos sistemas lo permiten)
+      let path = (file as any).path || '';
+
+      if (!path && window.pywebview && window.pywebview.api) {
+        // Si no hay ruta (Drag and Drop normal), enviamos el contenido al backend para que lo guarde en temp
+        try {
+          const content = await readFileAsBase64(file);
+          const result = await (window.pywebview.api as any).guardar_archivo_temporal(name, content);
+          if (result.status === "ok") {
+            path = result.path;
+          }
+        } catch (error) {
+          console.error("Error al transferir archivo arrastrado:", error);
+        }
+      }
+
+      if (path) {
+        newFiles.push({
+          id: Math.random().toString(36).substr(2, 9),
+          name: name,
+          path: path, 
+          selected: true,
+          extension: extension
+        });
+      }
+    }
+
+    if (newFiles.length > 0) {
+      setFiles(prev => [...prev, ...newFiles]);
+    }
+    setIsLoading(false);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -173,17 +209,19 @@ export const EnviarArchivos: React.FC<EnviarArchivosProps> = ({ onBack, onStartS
         )}
 
         <div 
-          className={`dropzone ${isDragging ? 'dragging' : ''}`} 
-          onClick={handleBrowseFiles}
+          className={`dropzone ${isDragging ? 'dragging' : ''} ${isLoading ? 'loading' : ''}`} 
+          onClick={isLoading ? undefined : handleBrowseFiles}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          <UploadCloud size={36} color="#3c5bb1" />
+          <UploadCloud size={36} color={isLoading ? "#94a3b8" : "#3c5bb1"} className={isLoading ? "animate-pulse" : ""} />
           <p className="dropzone-text-primary">
-            {isLoading ? "Buscando archivos..." : isDragging ? "Suelta los archivos aquí" : "Arrastre archivos aquí o pulse para buscar"}
+            {isLoading ? "Procesando archivos... por favor espera" : isDragging ? "Suelta los archivos aquí" : "Arrastre archivos aquí o pulse para buscar"}
           </p>
-          <p className="dropzone-text-secondary">PDF, DOCX, PNG, JPG y más</p>
+          <p className="dropzone-text-secondary">
+            {isLoading ? "Estamos preparando tus archivos para el envío" : "PDF, DOCX, PNG, JPG y más"}
+          </p>
         </div>
 
         <div className="selection-info">
