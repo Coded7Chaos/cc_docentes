@@ -47,13 +47,14 @@ logger = logging.getLogger(__name__)
 def obtener_ip():
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(2) # Evita que la app se cuelgue si la red no responde
         # No envía paquetes reales, solo simula una conexión para ver qué red usa Windows
         s.connect(("8.8.8.8", 80)) 
         ip = s.getsockname()[0]
         s.close()
         return ip
     except Exception as e:
-        logger.error(f"Error al obtener IP: {e}")
+        logger.error(f"Error al obtener IP (posible falta de red): {e}")
         return "127.0.0.1"
     
 def obtener_puerto_libre(puerto_inicial=5000):
@@ -263,18 +264,13 @@ def start():
     logger.info("Iniciando aplicación PyWebview...")
     api = ApiBridge()
     
-    # Determinar si estamos en desarrollo o producción (congelado por PyInstaller)
     es_produccion = getattr(sys, 'frozen', False)
     
     if es_produccion:
-        # En producción cargamos el index.html de la carpeta frontend/dist
         ruta_html = obtener_ruta_recurso(os.path.join('frontend', 'dist', 'index.html'))
         target_url = ruta_html
-        logger.info(f"Modo producción detectado. Cargando interfaz desde: {target_url}")
     else:
-        # En desarrollo apuntamos al puerto de Vite
         target_url = 'http://localhost:5173'
-        logger.info("Modo desarrollo detectado. Apuntando a http://localhost:5173")
 
     window = webview.create_window(
         'Simple Test Server', 
@@ -282,13 +278,17 @@ def start():
         js_api=api, 
         width=1200, 
         height=800, 
-        resizable=False
+        resizable=True # Permitir mover/redimensionar libremente
     )
     api.window = window
+    estado["window"] = window
     
-    # Resolvemos la ruta del icono correctamente
-    ruta_icono = obtener_ruta_recurso('backend/icono.png')
-    webview.start(icon=ruta_icono)
+    # Iniciamos el servidor Flask de forma ultra-segura
+    # (El servidor no hará nada hasta que el usuario le de a 'Iniciar')
+    api.asegurar_servidor_iniciado()
+    
+    logger.info("Lanzando bucle de interfaz...")
+    webview.start() # Quitamos el parámetro icon de aquí por ahora para descartar errores de carga
     logger.info("Aplicación cerrada.")
 
 if __name__ == '__main__':
