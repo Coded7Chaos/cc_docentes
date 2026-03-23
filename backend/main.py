@@ -7,15 +7,29 @@ import socket
 import sys
 import subprocess
 import logging
+from pathlib import Path
+
+
+
 
 # Función para resolver rutas de archivos internos (necesario para PyInstaller)
 def obtener_ruta_recurso(ruta_relativa):
-    try:
-        # PyInstaller crea una carpeta temporal y guarda la ruta en _MEIPASS
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, ruta_relativa)
+    """
+    Resuelve la ruta absoluta de un recurso, ya sea en desarrollo (Mac) 
+    o en producción (Windows .exe compilado con PyInstaller).
+    """
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        # MODO PRODUCCIÓN (.exe): Convertimos el texto _MEIPASS a Path
+        base_path = Path(sys._MEIPASS)
+    else:
+        # MODO DESARROLLO (Mac): __file__ está en backend/main.py, subimos un nivel
+        base_path = Path(__file__).parent.parent
+        
+    # El símbolo '/' une las rutas perfectamente porque base_path ya es un Path
+    ruta_final = base_path / ruta_relativa
+    
+    # Devolvemos la ruta como texto normal (string) por si pywebview o pyinstaller lo requieren así
+    return str(ruta_final)
 
 # Configuración de logs en carpeta de usuario
 def configurar_logs():

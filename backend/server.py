@@ -2,10 +2,11 @@ import os
 import json
 import shutil
 import ipaddress
-from flask import Flask, request, jsonify, render_template, send_from_directory, abort
+from flask import Flask, request, jsonify, render_template, send_file, abort
 from werkzeug.utils import secure_filename
 from datetime import datetime
 import logging
+from pathlib import Path
 
 import sys
 
@@ -60,7 +61,6 @@ def configurar_servidor(materia, password, modo, ruta_base):
     estado["materia"] = materia
     estado["password"] = password
     estado["modo"] = modo
-    # ... rest of the function (I'll keep the logic below the same but need to ensure 'tipo' is set)
     nombre_carpeta_principal = f'entregas_{materia}_{datetime.now().strftime("%Y%m%d")}'
     estado["ruta"] = os.path.join(ruta_base, nombre_carpeta_principal)
     try:
@@ -101,6 +101,8 @@ def download_file(file_id):
     logger.info(f"Enviando archivo: {archivo['nombre']} a {client_ip}")
     return send_file(ruta_completa, as_attachment=True)
 
+
+
 @app.route('/upload', methods=['POST'])
 def upload():
     client_ip = request.remote_addr
@@ -126,6 +128,17 @@ def upload():
                     nombre_carpeta_alumno = f"{safe_id}_{timestamp}"
                 else:
                     nombre_carpeta_alumno = safe_id
+                    ruta_directorio = Path(estado["ruta"])
+                    archivos_encontrados = ruta_directorio.glob(f"{safe_id}.*")
+                    for archivo in archivos_encontrados:
+                        if(archivo.is_file()):
+                            try:
+                                archivo.unlink()
+                                logger.info(f"Se borró el archivo {archivo.name}")
+                            except PermissionError:
+                                logger.info(f"Error de permisos al intentar borrar {archivo.name}")
+                            except Exception as e:
+                                logger.info(f"Ocurrió un error inesperado al intentar eliminar {archivo.name}")
 
                 ruta_carpeta_alumno = os.path.join(estado["ruta"], nombre_carpeta_alumno)
 
@@ -147,6 +160,20 @@ def upload():
                         final_name = f"{safe_id}_{timestamp}{extension}"
                     else:
                         final_name = f"{safe_id}{extension}"
+                        ruta_carpeta_alumno = os.path.join(estado["ruta"], safe_id)
+                        if(os.path.exists(ruta_carpeta_alumno)):
+                            shutil.rmtree(ruta_carpeta_alumno)
+                        ruta_directorio = Path(estado["ruta"])
+                        archivos_encontrados = ruta_directorio.glob(f"{safe_id}.*")
+                        for archivo in archivos_encontrados:
+                            if(archivo.is_file()):
+                                try:
+                                    archivo.unlink()
+                                    logger.info(f"Se borró el archivo {archivo.name}")
+                                except PermissionError:
+                                    logger.info(f"Error de permisos al intentar borrar {archivo.name}")
+                                except Exception as e:
+                                    logger.info(f"Ocurrió un error inesperado al intentar eliminar {archivo.name}")
                     # Guardar el archivo en la carpeta
                     dest = os.path.join(estado["ruta"], final_name)
                     file.save(dest)
