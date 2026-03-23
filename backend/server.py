@@ -61,7 +61,7 @@ def configurar_servidor(materia, password, modo, ruta_base):
     estado["materia"] = materia
     estado["password"] = password
     estado["modo"] = modo
-    nombre_carpeta_principal = f'entregas_{materia}_{datetime.now().strftime("%Y%m%d")}'
+    nombre_carpeta_principal = f'{materia}_{datetime.now().strftime("%Y_%m_%d")}'
     estado["ruta"] = os.path.join(ruta_base, nombre_carpeta_principal)
     try:
         if not os.path.exists(estado["ruta"]):
