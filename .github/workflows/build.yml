@@ -30,7 +30,7 @@ jobs:
 
     - name: 5. Compilar instalador con Inno Setup
       run: |
-        "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" instalador.iss
+        & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" instalador.iss
 
     - name: 6. Subir el instalador final para descargarlo
       uses: actions/upload-artifact@v4
