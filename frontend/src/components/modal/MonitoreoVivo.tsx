@@ -92,9 +92,10 @@ export const MonitoreoVivo: React.FC<MonitoreoVivoProps> = ({ onBack, onCloseSer
             </main>
 
             <footer className="monitoreo-footer">
-                <button className="btn-settings">
+                {/* <button className="btn-settings">
                     <Settings size={24} color="#f1f5f9" />
-                </button>
+                </button> */}
+                <div></div>
                 <div className="footer-actions">
                     <button className="btn-open-folder" onClick={handleOpenFolder}>
                         <FolderOpen size={20} color="#f1f5f9" />

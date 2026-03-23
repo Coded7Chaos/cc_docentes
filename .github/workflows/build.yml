@@ -17,22 +17,33 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.12.2'
+        
+    - name: 3. Configurar Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20' # Versión estable de Node
     
-    - name: 3. Instalar dependencias (librerias)
+    - name: 4. Compilar Frontend (crea la carpeta dist)
+      run: |
+        cd frontend
+        npm install
+        npm run build
+
+    - name: 5. Instalar dependencias (librerias)
       run: |
         python -m pip install --upgrade pip
         pip install pyinstaller pywebview
         pip install -r requirements.txt
 
-    - name: 4. Compilar con pyinstaller 
+    - name: 6. Compilar con pyinstaller 
       run: |
         pyinstaller --noconsole --onedir --icon="backend\icono.ico" --add-data "frontend;frontend" backend\main.py
 
-    - name: 5. Compilar instalador con Inno Setup
+    - name: 7. Compilar instalador con Inno Setup
       run: |
         & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" instalador.iss
 
-    - name: 6. Subir el instalador final para descargarlo
+    - name: 8. Subir el instalador final para descargarlo
       uses: actions/upload-artifact@v4
       with:
         name: Mi-instalador-Windows

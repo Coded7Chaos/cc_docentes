@@ -217,7 +217,7 @@ export const EnviarArchivos: React.FC<EnviarArchivosProps> = ({ onBack, onStartS
         >
           <UploadCloud size={36} color={isLoading ? "#94a3b8" : "#3c5bb1"} className={isLoading ? "animate-pulse" : ""} />
           <p className="dropzone-text-primary">
-            {isLoading ? "Procesando archivos... por favor espera" : isDragging ? "Suelta los archivos aquí" : "Arrastre archivos aquí o pulse para buscar"}
+            {isLoading ? "Procesando archivos... por favor espera" : isDragging ? "Suelta los archivos aquí" : "Pulse aquí para buscar y añadir archivos"}
           </p>
           <p className="dropzone-text-secondary">
             {isLoading ? "Estamos preparando tus archivos para el envío" : "PDF, DOCX, PNG, JPG y más"}
