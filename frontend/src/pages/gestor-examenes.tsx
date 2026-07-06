@@ -5,6 +5,7 @@ import { ConfiguracionServidor } from "../components/modal/ConfiguracionServidor
 import { MonitoreoVivo } from "../components/modal/MonitoreoVivo";
 import { EnviarArchivos } from "../components/modal/EnviarArchivos";
 import { MonitoreoEnvio } from "../components/modal/MonitoreoEnvio";
+import { UpdateBanner } from "../components/common/UpdateBanner";
 import './gestor-examenes.css';
 
 export const GestorExamenesPage = () => {
@@ -23,6 +24,7 @@ export const GestorExamenesPage = () => {
 
     return (
         <div className="frame">
+            <UpdateBanner />
             {view === 'welcome' && (
                 <>
                     <Header />

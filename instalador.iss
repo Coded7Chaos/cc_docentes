@@ -1,5 +1,9 @@
 #define AppName "Simple Test Server"
-#define AppVersion "1.0.0"
+; AppVersion se puede sobreescribir al compilar con: ISCC.exe /DAppVersion=1.2.3 instalador.iss
+; (el workflow de CI lo hace automáticamente a partir del tag de git publicado)
+#ifndef AppVersion
+  #define AppVersion "0.0.0-dev"
+#endif
 #define AppPublisher "Nicole Rodas"
 #define AppExeName "main.exe"
 #define BuildDir "dist/main"

@@ -2,6 +2,7 @@ import webview
 import threading
 from waitress import serve
 from server import app, estado, configurar_servidor # Importamos tu lógica
+import updater
 import os
 import socket
 import sys
@@ -254,6 +255,18 @@ class ApiBridge:
         except Exception as e:
             logger.error(f"Error al guardar archivo temporal: {e}")
             return {"status": "error", "message": str(e)}
+
+    def verificar_actualizacion(self):
+        logger.info("Verificando si hay una actualización disponible en GitHub...")
+        return updater.verificar_actualizacion()
+
+    def descargar_instalar_actualizacion(self, url_descarga):
+        logger.info(f"Descargando actualización desde: {url_descarga}")
+        resultado = updater.descargar_e_instalar(url_descarga)
+        if resultado.get("status") == "ok":
+            logger.info("Instalador de actualización lanzado. Cerrando la aplicación...")
+            threading.Timer(1.0, lambda: os._exit(0)).start()
+        return resultado
 
     def detener_servidor(self):
         logger.info("Solicitud de detención de servidor.")

@@ -13,6 +13,15 @@ declare global {
         detener_servidor: () => Promise<any>;
         abrir_carpeta: () => void;
         obtener_alumnos_directo: () => Promise<any[]>;
+        verificar_actualizacion: () => Promise<{
+          disponible: boolean;
+          version_actual?: string;
+          version_remota?: string;
+          notas?: string;
+          url_descarga?: string;
+          error?: string;
+        }>;
+        descargar_instalar_actualizacion: (urlDescarga: string) => Promise<{ status: string; message?: string }>;
       }
     }
   }
