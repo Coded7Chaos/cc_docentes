@@ -13,6 +13,11 @@ pyobjc-core==12.1; sys_platform == 'darwin'
 pyobjc-framework-Cocoa==12.1; sys_platform == 'darwin'
 pyobjc-framework-WebKit==12.1; sys_platform == 'darwin'
 
+# OS Specific (Linux: pywebview usa GTK + WebKit2 vía PyGObject,
+# instalado por apt como paquete de sistema, no por pip. Solo se necesitan
+# los hooks de PyInstaller para que empaquete bien los typelibs de gi/GTK)
+pyinstaller-hooks-contrib; sys_platform == 'linux'
+
 # Utilities
 pillow==12.1.1
 click==8.3.1

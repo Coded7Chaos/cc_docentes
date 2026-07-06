@@ -5,7 +5,7 @@ Guía rápida del proyecto para trabajar eficientemente con Claude Code.
 ## Qué es esto
 
 **Simple Test Server** (nombre interno de datos/carpetas: `EasyTestServer`) es una app de
-escritorio para Windows (y ejecutable en Mac para desarrollo) pensada para docentes:
+escritorio multiplataforma (Windows, macOS y Linux) pensada para docentes:
 
 - **Recibir exámenes**: levanta un servidor local al que los alumnos, conectados a la misma
   red Wi-Fi/LAN, suben sus archivos desde el navegador (sin necesidad de internet).
@@ -32,12 +32,20 @@ El servidor **solo acepta conexiones de IPs privadas/loopback** (ver `filtrar_so
     cada vez que se agrega/cambia un método de `ApiBridge` en `main.py`**.
   - En modo dev (`npm run dev`), `window.pywebview` no existe; los componentes lo chequean
     y usan fallbacks/mocks para poder probar la UI en un navegador normal.
-- **Empaquetado**: PyInstaller genera el `.exe` (`--onedir`), Inno Setup (`instalador.iss`)
-  genera el instalador `SimpleTestServer_Setup.exe`. El instalador desinstala silenciosamente
-  cualquier versión previa antes de instalar la nueva (mismo `AppId` fijo).
-- **CI/CD**: `.github/workflows/build.yml` compila frontend + backend + instalador en
-  `windows-latest`. Se dispara en push a `main` (build de verificación, sube artifact) y en
-  tags `v*.*.*` (además publica una GitHub Release con el instalador adjunto — ver
+- **Empaquetado**: PyInstaller compila en modo `--onedir` en los tres sistemas operativos, y
+  cada uno se empaqueta distinto:
+  - **Windows**: Inno Setup (`instalador.iss`) genera `SimpleTestServer_Setup.exe`. El
+    instalador desinstala silenciosamente cualquier versión previa antes de instalar la nueva
+    (mismo `AppId` fijo).
+  - **macOS**: PyInstaller con `--windowed` genera `Simple Test Server.app`, que se comprime
+    tal cual en `SimpleTestServer-mac.zip`.
+  - **Linux**: PyInstaller genera la carpeta `main/` (binario + libs), que se empaqueta en
+    `SimpleTestServer-linux.tar.gz`. `pywebview` en Linux usa GTK3 + WebKit2 vía PyGObject
+    (paquete de sistema instalado con `apt`, no con pip).
+- **CI/CD**: `.github/workflows/build.yml` tiene un job separado por sistema operativo
+  (`build-windows`, `build-macos`, `build-linux`) más un job `release`. Se dispara en push a
+  `main` (build de verificación en los 3 SO, sube artifacts) y en tags `v*.*.*` (además el job
+  `release` junta los 3 paquetes y publica una GitHub Release con los tres adjuntos — ver
   "Cómo publicar una nueva versión" abajo).
 
 ## Cómo correr en desarrollo
@@ -71,16 +79,29 @@ En desarrollo, `main.py` apunta la ventana a `http://localhost:5173` (ver `es_pr
 ## Actualización automática (GitHub Releases)
 
 La app chequea sola si hay una versión nueva publicada en GitHub Releases del repo
-`Coded7Chaos/cc_docentes`, y si el usuario acepta, descarga el instalador, lo corre en modo
-silencioso y cierra la app para que el instalador reemplace los archivos.
+`Coded7Chaos/cc_docentes`, y si el usuario acepta, descarga el paquete correspondiente a su
+sistema operativo, reemplaza la instalación actual y se reinicia sola.
 
 - **Versión actual**: vive en `backend/version.txt` (se empaqueta con PyInstaller y se lee en
   runtime). En desarrollo normalmente dice `0.0.0-dev`.
-- **Lógica de chequeo/descarga**: `backend/updater.py`.
+- **Lógica de chequeo/descarga/reemplazo**: `backend/updater.py`. Detecta el sistema operativo
+  con `sys.platform` y elige el asset correcto de la release (`.exe` en Windows, `-mac.zip` en
+  macOS, `-linux.tar.gz` en Linux).
 - **Puente a la UI**: métodos `verificar_actualizacion()` y
   `descargar_instalar_actualizacion(url)` en `ApiBridge` (`backend/main.py`).
 - **UI**: `frontend/src/components/common/UpdateBanner.tsx`, montado en
   `gestor-examenes.tsx`, chequea al iniciar la app.
+- **Cómo se reemplaza en cada SO**:
+  - **Windows**: corre el instalador de Inno Setup con `/VERYSILENT` (igual que una instalación
+    limpia).
+  - **macOS**: descarga y descomprime el `.zip`, y lanza un script que espera a que la app
+    cierre, borra el `.app` viejo, mueve el nuevo a su lugar y lo vuelve a abrir con `open`.
+  - **Linux**: mismo mecanismo que macOS pero con la carpeta `--onedir` extraída del
+    `.tar.gz`.
+  - **Caveat**: en macOS y Linux el reemplazo requiere permiso de escritura sobre la carpeta
+    de instalación (ej: si la app vive en `/Applications` sin permisos de escritura para el
+    usuario, el script de reemplazo va a fallar silenciosamente — no hay recuperación
+    automática para ese caso todavía).
 
 ### Cómo publicar una nueva versión
 
@@ -90,13 +111,12 @@ silencioso y cierra la app para que el instalador reemplace los archivos.
    git tag v1.2.3
    git push origin v1.2.3
    ```
-3. El workflow de GitHub Actions (`.github/workflows/build.yml`) se dispara solo, compila el
-   instalador con esa versión (se la pasa a Inno Setup y la escribe en
-   `backend/version.txt` antes de armar el `.exe`), y publica una **GitHub Release** con el
-   tag como nombre y el instalador (`SimpleTestServer_Setup.exe`) como asset.
+3. El workflow de GitHub Actions (`.github/workflows/build.yml`) se dispara solo: compila los
+   tres paquetes (Windows/macOS/Linux) en paralelo con esa versión, y el job `release` los junta
+   y publica una **GitHub Release** con el tag como nombre y los tres instaladores como assets
+   (`SimpleTestServer_Setup.exe`, `SimpleTestServer-mac.zip`, `SimpleTestServer-linux.tar.gz`).
 4. Las instalaciones existentes van a detectar la nueva release la próxima vez que abran la
-   app (o si el usuario aprieta "Buscar actualizaciones") y se van a ofrecer a actualizar
-   solas.
+   app y se van a ofrecer a actualizar solas.
 
 No hace falta editar `instalador.iss` a mano para cambiar la versión — el número que importa
 es el del tag de git.

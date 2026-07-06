@@ -1,4 +1,4 @@
-name: Compilar Instalador de Windows
+name: Compilar Instaladores (Windows, macOS, Linux)
 
 on:
   push:
@@ -7,10 +7,25 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+    - name: Determinar versión a compilar
+      id: version
+      shell: bash
+      run: |
+        if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+          VERSION="${GITHUB_REF#refs/tags/v}"
+        else
+          VERSION="0.0.0-dev"
+        fi
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+  build-windows:
+    needs: version
     runs-on: windows-latest
-    permissions:
-      contents: write
 
     steps:
     - name: 1. Descargar el código en la máquina virtual
@@ -24,19 +39,11 @@ jobs:
     - name: 3. Configurar Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20' # Versión estable de Node
+        node-version: '20'
 
-    - name: 4. Determinar versión a compilar
-      id: version
+    - name: 4. Escribir versión en backend/version.txt
       shell: bash
-      run: |
-        if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
-          VERSION="${GITHUB_REF#refs/tags/v}"
-        else
-          VERSION="0.0.0-dev"
-        fi
-        echo "$VERSION" > backend/version.txt
-        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      run: echo "${{ needs.version.outputs.version }}" > backend/version.txt
 
     - name: 5. Compilar Frontend (crea la carpeta dist)
       run: |
@@ -55,19 +62,130 @@ jobs:
 
     - name: 8. Compilar instalador con Inno Setup
       run: |
-        & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DAppVersion=${{ steps.version.outputs.version }} instalador.iss
+        & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DAppVersion=${{ needs.version.outputs.version }} instalador.iss
 
-    - name: 9. Subir el instalador final para descargarlo
+    - name: 9. Subir el instalador de Windows
       uses: actions/upload-artifact@v4
       with:
-        name: Mi-instalador-Windows
-        path: output/
+        name: release-windows
+        path: output/*.exe
 
-    - name: 10. Publicar GitHub Release (solo al pushear un tag vX.Y.Z)
-      if: startsWith(github.ref, 'refs/tags/v')
+  build-macos:
+    needs: version
+    runs-on: macos-latest
+
+    steps:
+    - name: 1. Descargar el código en la máquina virtual
+      uses: actions/checkout@v4
+
+    - name: 2. Configurar python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12.2'
+
+    - name: 3. Configurar Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: 4. Escribir versión en backend/version.txt
+      run: echo "${{ needs.version.outputs.version }}" > backend/version.txt
+
+    - name: 5. Compilar Frontend (crea la carpeta dist)
+      run: |
+        cd frontend
+        npm install
+        npm run build
+
+    - name: 6. Instalar dependencias (librerias)
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: 7. Compilar con pyinstaller (genera el .app)
+      run: |
+        pyinstaller --windowed --onedir --icon="backend/icono.png" --add-data "frontend/dist:frontend/dist" --add-data "backend/templates:backend/templates" --add-data "backend/version.txt:backend" --name "Simple Test Server" backend/main.py
+
+    - name: 8. Comprimir el .app en un .zip
+      run: |
+        cd dist
+        zip -r -y "../SimpleTestServer-mac.zip" "Simple Test Server.app"
+
+    - name: 9. Subir el paquete de macOS
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-macos
+        path: SimpleTestServer-mac.zip
+
+  build-linux:
+    needs: version
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 1. Descargar el código en la máquina virtual
+      uses: actions/checkout@v4
+
+    - name: 2. Instalar dependencias del sistema (GTK + WebKit2 para pywebview)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-gi python3-gi-cairo gir1.2-gtk-3.0 gir1.2-webkit2-4.1 python3-venv
+
+    - name: 3. Configurar Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: 4. Escribir versión en backend/version.txt
+      run: echo "${{ needs.version.outputs.version }}" > backend/version.txt
+
+    - name: 5. Compilar Frontend (crea la carpeta dist)
+      run: |
+        cd frontend
+        npm install
+        npm run build
+
+    - name: 6. Crear entorno virtual con acceso a los paquetes del sistema (gi/GTK)
+      run: python3 -m venv --system-site-packages .venv
+
+    - name: 7. Instalar dependencias de Python
+      run: |
+        source .venv/bin/activate
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: 8. Compilar con pyinstaller
+      run: |
+        source .venv/bin/activate
+        pyinstaller --onedir --add-data "frontend/dist:frontend/dist" --add-data "backend/templates:backend/templates" --add-data "backend/version.txt:backend" --name "main" backend/main.py
+
+    - name: 9. Empaquetar en .tar.gz
+      run: tar -C dist -czf SimpleTestServer-linux.tar.gz main
+
+    - name: 10. Subir el paquete de Linux
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-linux
+        path: SimpleTestServer-linux.tar.gz
+
+  release:
+    needs: [ build-windows, build-macos, build-linux ]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Descargar todos los instaladores compilados
+      uses: actions/download-artifact@v4
+      with:
+        pattern: release-*
+        path: release-assets
+        merge-multiple: true
+
+    - name: Publicar GitHub Release con los 3 instaladores
       uses: softprops/action-gh-release@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        files: output/*.exe
+        files: release-assets/*
         generate_release_notes: true
