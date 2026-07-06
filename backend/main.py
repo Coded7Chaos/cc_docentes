@@ -287,33 +287,104 @@ class ApiBridge:
             logger.error(f"Error al detener el servidor: {e}")
             return {"status": "error", "message": str(e)}
 
+# Splash liviano: se muestra de inmediato mientras el motor de la ventana principal
+# (WebView2/WebKit) todavía está inicializando, para no dejar al usuario mirando una
+# ventana en blanco durante esos primeros segundos.
+SPLASH_HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: #020617;
+    display: flex; align-items: center; justify-content: center;
+    font-family: -apple-system, 'Segoe UI', Arial, sans-serif;
+  }
+  .splash { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .spinner {
+    width: 34px; height: 34px;
+    border: 3px solid rgba(74, 137, 243, 0.25);
+    border-top-color: #4A89F3;
+    border-radius: 50%;
+    animation: girar 0.8s linear infinite;
+  }
+  @keyframes girar { to { transform: rotate(360deg); } }
+  .texto { font-size: 13px; color: #94a3b8; letter-spacing: 0.3px; }
+</style>
+</head>
+<body>
+  <div class="splash">
+    <div class="spinner"></div>
+    <div class="texto">Iniciando Simple Test Server...</div>
+  </div>
+</body>
+</html>
+"""
+
+
 def start():
     logger.info("Iniciando aplicación PyWebview...")
     api = ApiBridge()
-    
+
     es_produccion = getattr(sys, 'frozen', False)
-    
+
     if es_produccion:
         ruta_html = obtener_ruta_recurso(os.path.join('frontend', 'dist', 'index.html'))
         target_url = ruta_html
     else:
         target_url = 'http://localhost:5173'
 
+    splash = webview.create_window(
+        'Simple Test Server',
+        html=SPLASH_HTML,
+        width=340,
+        height=200,
+        resizable=False,
+        frameless=True,
+        on_top=True,
+        background_color='#020617',
+    )
+
     window = webview.create_window(
-        'Simple Test Server', 
-        target_url, 
-        js_api=api, 
-        width=1200, 
-        height=800, 
-        resizable=True # Permitir mover/redimensionar libremente
+        'Simple Test Server',
+        target_url,
+        js_api=api,
+        width=1200,
+        height=800,
+        resizable=True, # Permitir mover/redimensionar libremente
+        hidden=True, # Se muestra recién cuando terminó de cargar (ver _mostrar_ventana_principal)
+        background_color='#020617',
     )
     api.window = window
     estado["window"] = window
-    
+
+    ventana_mostrada = threading.Event()
+
+    def _mostrar_ventana_principal():
+        if ventana_mostrada.is_set():
+            return
+        ventana_mostrada.set()
+        logger.info("Ventana principal lista, cerrando splash...")
+        try:
+            window.show()
+        except Exception as e:
+            logger.error(f"Error al mostrar la ventana principal: {e}")
+        try:
+            splash.destroy()
+        except Exception as e:
+            logger.error(f"Error al cerrar el splash: {e}")
+
+    window.events.loaded += _mostrar_ventana_principal
+    # Red de seguridad: si por algún motivo el evento 'loaded' nunca dispara,
+    # no dejamos al usuario con el splash colgado para siempre.
+    threading.Timer(15.0, _mostrar_ventana_principal).start()
+
     # Iniciamos el servidor Flask de forma ultra-segura
     # (El servidor no hará nada hasta que el usuario le de a 'Iniciar')
     api.asegurar_servidor_iniciado()
-    
+
     logger.info("Lanzando bucle de interfaz...")
     webview.start() # Quitamos el parámetro icon de aquí por ahora para descartar errores de carga
     logger.info("Aplicación cerrada.")
